@@ -14,8 +14,29 @@ env:
   DOTNET_IMAGE: sample-dotnet-8
 
 jobs:
+  determine-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend-changed: ${{ steps.filter.outputs.frontend }}
+      backend-changed: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'
+
   build-frontend:
     runs-on: ubuntu-latest
+    needs: determine-changes
+    if: needs.determine-changes.outputs.frontend-changed == 'true'
     outputs:
       image_tag: ${{ steps.meta.outputs.sha }}
     steps:
@@ -46,6 +67,8 @@ jobs:
 
   build-backend:
     runs-on: ubuntu-latest
+    needs: determine-changes
+    if: needs.determine-changes.outputs.backend-changed == 'true'
     outputs:
       image_tag: ${{ steps.meta.outputs.sha }}
     steps:
@@ -76,26 +99,38 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build-frontend, build-backend]
+    needs: [determine-changes, build-frontend, build-backend]
+    if: always() && (needs.build-frontend.result == 'success' || needs.build-backend.result == 'success')
     steps:
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
         env:
           ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
           ACR_NAME: ${{ secrets.ACR_NAME }}
-          IMAGE_TAG: ${{ needs.build-frontend.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.build-frontend.outputs.image_tag || needs.build-backend.outputs.image_tag }}
+          FRONTEND_CHANGED: ${{ needs.determine-changes.outputs.frontend-changed }}
+          BACKEND_CHANGED: ${{ needs.determine-changes.outputs.backend-changed }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           password: ${{ secrets.VM_PASSWORD }}
-          envs: ACR_LOGIN_SERVER,ACR_NAME,IMAGE_TAG
+          envs: ACR_LOGIN_SERVER,ACR_NAME,IMAGE_TAG,FRONTEND_CHANGED,BACKEND_CHANGED
           script: |
             az login --identity
             az acr login --name $ACR_NAME
 
             cd /home/vietvo/monorepo
-            yq -i ".services.angular-app.image = \"$ACR_LOGIN_SERVER/sample-angular-19:$IMAGE_TAG\"" docker-compose.yml
-            yq -i ".services.dotnet-app.image = \"$ACR_LOGIN_SERVER/sample-dotnet-8:$IMAGE_TAG\"" docker-compose.yml
+            
+            if [ "$FRONTEND_CHANGED" == "true" ]; then
+              yq -i ".services.angular-app.image = \"$ACR_LOGIN_SERVER/sample-angular-19:$IMAGE_TAG\"" docker-compose.yml
+              echo "Updated Angular image to $IMAGE_TAG"
+            fi
+            
+            if [ "$BACKEND_CHANGED" == "true" ]; then
+              yq -i ".services.dotnet-app.image = \"$ACR_LOGIN_SERVER/sample-dotnet-8:$IMAGE_TAG\"" docker-compose.yml
+              echo "Updated .NET image to $IMAGE_TAG"
+            fi
+            
             docker compose down
             docker compose up -d
-            echo "Deployed Angular and .NET with tag: $IMAGE_TAG"
+            echo "Deployment complete with tag: $IMAGE_TAG"
