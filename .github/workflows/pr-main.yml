@@ -20,7 +20,7 @@ jobs:
       - name: Build .NET Docker image
         run: |
           cd backend
-          dotnet build -t dotnet-test:${{ github.sha }} .
+          docker build -t dotnet-test:${{ github.sha }} .
       
       - name: Build verification passed
         run: echo "Both images built successfully"
