@@ -9,14 +9,11 @@ jobs:
   determine-changes:
     runs-on: ubuntu-latest
     outputs:
-      frontend-changed: ${{ steps.filter.outputs.frontend }}
-      backend-changed: ${{ steps.filter.outputs.backend }}
+      frontend_changed: ${{ steps.filter.outputs.frontend }}
+      backend_changed: ${{ steps.filter.outputs.backend }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check for changes
-        id: filter
+      - uses: actions/checkout@v4
+      - id: filter
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -24,46 +21,46 @@ jobs:
               - 'frontend/**'
             backend:
               - 'backend/**'
-
-  build-frontend:
+  build-test-frontend:
     runs-on: ubuntu-latest
     needs: determine-changes
-    if: needs.determine-changes.outputs.frontend-changed == 'true'
+    if: needs.determine-changes.outputs.frontend_changed == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Angular Docker image
-        run: |
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
           cd frontend
-          docker build -t angular-test:${{ github.sha }} .
+          npm install
+          npm run build
 
-  build-backend:
+  build-test-backend:
     runs-on: ubuntu-latest
     needs: determine-changes
-    if: needs.determine-changes.outputs.backend-changed == 'true'
+    if: needs.determine-changes.outputs.backend_changed == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build .NET Docker image
-        run: |
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - run: |
           cd backend
-          docker build -t dotnet-test:${{ github.sha }} .
+          dotnet build
 
   build-summary:
     runs-on: ubuntu-latest
-    needs: [determine-changes, build-frontend, build-backend]
+    needs: [determine-changes, build-test-frontend, build-test-backend]
     if: always()
     steps:
       - name: Build verification summary
         run: |
-          echo "Frontend changed: ${{ needs.determine-changes.outputs.frontend-changed }}"
-          echo "Backend changed: ${{ needs.determine-changes.outputs.backend-changed }}"
-          echo "Frontend build: ${{ needs.build-frontend.result }}"
-          echo "Backend build: ${{ needs.build-backend.result }}"
+          echo "Frontend changed: ${{ needs.determine-changes.outputs.frontend_changed }}"
+          echo "Backend changed: ${{ needs.determine-changes.outputs.backend_changed }}"
+          echo "Frontend build: ${{ needs.build-test-frontend.result }}"
+          echo "Backend build: ${{ needs.build-test-backend.result }}"
           
-          if [ "${{ needs.build-frontend.result }}" == "failure" ] || [ "${{ needs.build-backend.result }}" == "failure" ]; then
+          if [ "${{ needs.build-test-frontend.result }}" == "failure" ] || [ "${{ needs.build-test-backend.result }}" == "failure" ]; then
             echo "Build failed!"
             exit 1
           fi
