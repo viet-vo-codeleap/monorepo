@@ -1,0 +1,22 @@
+name: 'ACR Login'
+description: 'Login to Azure and Azure Container Registry'
+
+inputs:
+  azure-credentials:
+    description: 'Azure Service Principal credentials (JSON)'
+    required: true
+  acr-name:
+    description: 'Azure Container Registry name'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        creds: ${{ inputs.azure-credentials }}
+
+    - name: Login to ACR
+      shell: bash
+      run: az acr login --name ${{ inputs.acr-name }}

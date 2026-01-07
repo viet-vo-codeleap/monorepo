@@ -3,19 +3,19 @@ name: RW - Determine Changes
 on:
   workflow_call:
     outputs:
-      frontend_changed:
+      frontend-changed:
         description: 'True if frontend files changed'
-        value: ${{ jobs.detect.outputs.frontend_changed }}
-      backend_changed:
+        value: ${{ jobs.detect.outputs.frontend-changed }}
+      backend-changed:
         description: 'True if backend files changed'
-        value: ${{ jobs.detect.outputs.backend_changed }}
+        value: ${{ jobs.detect.outputs.backend-changed }}
 
 jobs:
   detect:
     runs-on: ubuntu-latest
     outputs:
-      frontend_changed: ${{ steps.filter.outputs.frontend }}
-      backend_changed: ${{ steps.filter.outputs.backend }}
+      frontend-changed: ${{ steps.filter.outputs.frontend }}
+      backend-changed: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
       - id: filter

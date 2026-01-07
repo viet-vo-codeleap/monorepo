@@ -18,12 +18,12 @@ jobs:
     uses: ./.github/workflows/rw-determine-changes.yml
   build-test-frontend:
     needs: determine-changes
-    if: needs.determine-changes.outputs.frontend_changed == 'true'
+    if: needs.determine-changes.outputs.frontend-changed == 'true'
     uses: ./.github/workflows/rw-build-test-fronend.yml
 
   build-test-backend:
     needs: determine-changes
-    if: needs.determine-changes.outputs.backend_changed == 'true'
+    if: needs.determine-changes.outputs.backend-changed == 'true'
     uses: ./.github/workflows/rw-build-test-backend.yml
 
   # build-docker-backend:
