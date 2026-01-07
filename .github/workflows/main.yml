@@ -15,118 +15,94 @@ env:
 
 jobs:
   determine-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      frontend_changed: ${{ steps.filter.outputs.frontend }}
-      backend_changed: ${{ steps.filter.outputs.backend }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-            backend:
-              - 'backend/**'
+    uses: ./.github/workflows/rw-determine-changes.yml
   build-test-frontend:
-    runs-on: ubuntu-latest
     needs: determine-changes
     if: needs.determine-changes.outputs.frontend_changed == 'true'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: |
-          cd frontend
-          npm install
-          npm run build
+    uses: ./.github/workflows/rw-build-test-fronend.yml
 
   build-test-backend:
-    runs-on: ubuntu-latest
     needs: determine-changes
     if: needs.determine-changes.outputs.backend_changed == 'true'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0'
-      - run: |
-          cd backend
-          dotnet build
+    uses: ./.github/workflows/rw-build-test-backend.yml
 
-  build-docker-backend:
-    runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.meta.outputs.sha }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # build-docker-backend:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     image_tag: ${{ steps.meta.outputs.sha }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Get commit SHA
-        id: meta
-        run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+  #     - name: Get commit SHA
+  #       id: meta
+  #       run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #     - name: Login to Azure
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Login to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
+  #     - name: Login to ACR
+  #       run: az acr login --name ${{ secrets.ACR_NAME }}
 
-      - name: Build and push .NET image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.DOTNET_IMAGE }}:${{ steps.meta.outputs.sha }}
-            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.DOTNET_IMAGE }}:latest
+  #     - name: Build and push .NET image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: ./backend
+  #         push: true
+  #         platforms: linux/amd64
+  #         tags: |
+  #           ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.DOTNET_IMAGE }}:${{ steps.meta.outputs.sha }}
+  #           ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.DOTNET_IMAGE }}:latest
 
-  build-docker-frontend:
-    runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.meta.outputs.sha }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # build-docker-frontend:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     image_tag: ${{ steps.meta.outputs.sha }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Get commit SHA
-        id: meta
-        run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+  #     - name: Get commit SHA
+  #       id: meta
+  #       run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #     - name: Login to Azure
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Login to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
+  #     - name: Login to ACR
+  #       run: az acr login --name ${{ secrets.ACR_NAME }}
 
-      - name: Build and push Angular image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.ANGULAR_IMAGE }}:${{ steps.meta.outputs.sha }}
-            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.ANGULAR_IMAGE }}:latest
+  #     - name: Build and push Angular image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: ./frontend
+  #         push: true
+  #         platforms: linux/amd64
+  #         tags: |
+  #           ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.ANGULAR_IMAGE }}:${{ steps.meta.outputs.sha }}
+  #           ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.ANGULAR_IMAGE }}:latest
+
+  build-docker-apps:
+    uses: ./.github/workflows/rw-build-docker-apps.yml
+    with:
+      push: true
+    secrets: inherit
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build-docker-frontend, build-docker-backend]
-    if: needs.build-docker-frontend.result == 'success' && needs.build-docker-backend.result == 'success'
+    needs: build-docker-apps
+    if: needs.build-docker-apps.result == 'success'
     steps:
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v1.0.3
         env:
           ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
           ACR_NAME: ${{ secrets.ACR_NAME }}
-          IMAGE_TAG: ${{ needs.build-docker-frontend.outputs.image_tag || needs.build-docker-backend.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.build-docker-apps.outputs.image_tag }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
