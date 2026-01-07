@@ -97,13 +97,17 @@ jobs:
         id: meta
         run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Login to Azure
-        uses: azure/login@v2
+      - name: Login to Azure and ACR
+        uses: ./.github/actions/ACR_LOGIN/action.yml
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          acr-name: ${{ secrets.ACR_NAME }}
+      #   uses: azure/login@v2
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Login to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
+      # - name: Login to ACR
+      #   run: az acr login --name ${{ secrets.ACR_NAME }}
 
       - name: Build and push Angular image
         uses: docker/build-push-action@v5
@@ -126,13 +130,11 @@ jobs:
         id: meta
         run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Login to Azure
-        uses: azure/login@v2
+      - name: Login to Azure and ACR
+        uses: ./.github/actions/ACR_LOGIN/action.yml
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Login to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
+          azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          acr-name: ${{ secrets.ACR_NAME }}
 
       - name: Build and push .NET image
         uses: docker/build-push-action@v5
