@@ -98,7 +98,7 @@ jobs:
         run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Login to Azure and ACR
-        uses: ./.github/actions/ACR_LOGIN/action.yml
+        uses: ./.github/actions/acr-login
         with:
           azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
           acr-name: ${{ secrets.ACR_NAME }}
@@ -131,7 +131,7 @@ jobs:
         run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Login to Azure and ACR
-        uses: ./.github/actions/ACR_LOGIN/action.yml
+        uses: ./.github/actions/acr-login
         with:
           azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
           acr-name: ${{ secrets.ACR_NAME }}
