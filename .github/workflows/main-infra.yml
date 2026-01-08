@@ -1,0 +1,28 @@
+# To Run Terraform plan
+name: Main - Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infrastructure/terraform/**'
+
+jobs:
+  terraform-apply:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure/terraform
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Set Up Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Login Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS }}
+        
+      - run: terraform init
+      - run: terraform plan -var-file=tfvars/dev.tfvars -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      - run: terraform apply -var-file=tfvars/dev.tfvars -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -auto-approve

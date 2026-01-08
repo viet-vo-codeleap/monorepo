@@ -1,47 +1,21 @@
-# Build output
+#############################################
+#               BUILD OUTPUT
+#############################################
 bin/
 obj/
 
-# User-specific files
+#############################################
+#            USER-SPECIFIC FILES
+#############################################
 *.user
 *.suo
 
-# IDE
+#############################################
+#                   IDE
+#############################################
 .idea/
 .vs/
 *.swp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-
-
-### for angular
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
-
-# Node
-/node_modules
-npm-debug.log
-yarn-error.log
-
-# IDEs and editors
-.idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
 
 # Visual Studio Code
 .vscode/*
@@ -51,15 +25,84 @@ yarn-error.log
 !.vscode/extensions.json
 .history/*
 
-# Miscellaneous
+# Other editors
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+#############################################
+#                   OS
+#############################################
+.DS_Store
+Thumbs.db
+
+#############################################
+#                   LOGS
+#############################################
+*.log
+npm-debug.log
+yarn-error.log
+libpeerconnection.log
+testem.log
+
+#############################################
+#                 ANGULAR
+#############################################
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+
+# Misc
 /.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
-/libpeerconnection.log
-testem.log
 /typings
 
-# System files
-.DS_Store
-Thumbs.db
+#############################################
+#               TERRAFORM
+#############################################
+# Local .terraform directories
+**/.terraform/*
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+terraform.tfstate
+terraform.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Sensitive variable files
+*.tfvars.json
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Plan files
+*.tfplan
+planfile
+plan.out
+
+# Module & Provider dependencies
+# (optional; remove if you want to track provider versions)
+.terraform.lock.hcl
+
+# Terraform CLI config
+.terraformrc
+terraform.rc
+plan
