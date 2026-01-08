@@ -12,3 +12,8 @@ variable "project" {
   description = "Project name"
   type        = string
 }
+
+variable "subscription_id" {
+  description = "Azure subscription ID"
+  type        = string
+}

@@ -24,5 +24,5 @@ jobs:
           creds: ${{secrets.AZURE_CREDENTIALS }}
         
       - run: terraform init
-      - run: terraform plan -var-file=tfvars/dev.tfvars
-      - run: terraform apply -var-file=tfvars/dev.tfvars -auto-approve
+      - run: terraform plan -var-file=tfvars/dev.tfvars -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      - run: terraform apply -var-file=tfvars/dev.tfvars -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -auto-approve
