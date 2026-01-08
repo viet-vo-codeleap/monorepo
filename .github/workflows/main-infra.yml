@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'infrastructure/terraform'
+      - 'infrastructure/terraform/**'
 
 jobs:
   terraform-apply:
