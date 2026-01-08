@@ -1,0 +1,28 @@
+name: RW - Determine Changes
+
+on:
+  workflow_call:
+    outputs:
+      frontend-changed:
+        description: 'True if frontend files changed'
+        value: ${{ jobs.detect.outputs.frontend-changed }}
+      backend-changed:
+        description: 'True if backend files changed'
+        value: ${{ jobs.detect.outputs.backend-changed }}
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend-changed: ${{ steps.filter.outputs.frontend }}
+      backend-changed: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'

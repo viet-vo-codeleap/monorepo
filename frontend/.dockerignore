@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Angular
+.angular/
+dist/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+*.spec.ts
+e2e/
+karma.conf.js
+
+# Documentation
+*.md
+LICENSE
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+.editorconfig
+*.tgz
