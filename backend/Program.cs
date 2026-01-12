@@ -44,3 +44,8 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// New route return dev environment
+app.MapGet("/dev", () => new { environment = "dev" })
+.WithName("DevEnvironment")
+.WithOpenApi();
