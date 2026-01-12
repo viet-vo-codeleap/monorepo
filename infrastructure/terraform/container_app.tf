@@ -42,7 +42,7 @@ resource "azurerm_container_app" "backend" {
     min_replicas = 1
     container {
       name   = "backend"
-      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+      image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"  # Always works
       cpu    = 0.25
       memory = "0.5Gi"
     }
