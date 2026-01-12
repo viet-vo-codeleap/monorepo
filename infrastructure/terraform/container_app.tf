@@ -42,7 +42,7 @@ resource "azurerm_container_app" "backend" {
     min_replicas = 1
     container {
       name   = "backend"
-      image  = "${data.azurerm_container_registry.acr.login_server}/sample-dotnet-8:latest"
+      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
       cpu    = 0.25
       memory = "0.5Gi"
     }
