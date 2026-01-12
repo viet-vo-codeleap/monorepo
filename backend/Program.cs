@@ -33,7 +33,7 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast")
 .WithOpenApi();
-// trigger backend changes
+// trigger backend change
 // Health check endpoint - added to test CI/CD pipeline
 app.MapGet("/health", () => new { status = "healthy", timestamp = DateTime.UtcNow, version = "1.0.1" })
 .WithName("HealthCheck")
