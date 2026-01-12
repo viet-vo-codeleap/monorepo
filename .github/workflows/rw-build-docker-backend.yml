@@ -1,0 +1,47 @@
+name: RW - Build Docker Backend
+
+on:
+  workflow_call:
+    inputs:
+      push:
+        description: 'Push image to ACR'
+        required: false
+        default: true
+        type: boolean
+      image-name:
+        description: 'Docker image name'
+        required: false
+        default: 'sample-dotnet-8'
+        type: string
+    outputs:
+      image_tag:
+        description: 'Image tag (short SHA)'
+        value: ${{ jobs.build.outputs.image_tag }}
+    secrets:
+      AZURE_CREDENTIALS:
+        required: true
+      ACR_NAME:
+        required: true
+      ACR_LOGIN_SERVER:
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - run: az acr login --name ${{ secrets.ACR_NAME }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: ${{ inputs.push }}
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/${{ inputs.image-name }}:${{ steps.meta.outputs.sha }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/${{ inputs.image-name }}:latest

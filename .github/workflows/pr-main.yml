@@ -8,29 +8,35 @@ on:
 jobs:
   determine-changes:
     uses: ./.github/workflows/rw-determine-changes.yml
-  build-test-frontend:
+
+  build-artifact-frontend:
     needs: determine-changes
     if: needs.determine-changes.outputs.frontend-changed == 'true'
-    uses: ./.github/workflows/rw-build-test-fronend.yml
+    uses: ./.github/workflows/rw-build-artifact-frontend.yml
+    with:
+      upload-artifact: false
 
-  build-test-backend:
+  build-docker-backend:
     needs: determine-changes
     if: needs.determine-changes.outputs.backend-changed == 'true'
-    uses: ./.github/workflows/rw-build-test-backend.yml
+    uses: ./.github/workflows/rw-build-docker-backend.yml
+    with:
+      push: false
+    secrets: inherit
 
   build-summary:
     runs-on: ubuntu-latest
-    needs: [determine-changes, build-test-frontend, build-test-backend]
+    needs: [determine-changes, build-artifact-frontend, build-docker-backend]
     if: always()
     steps:
       - name: Build verification summary
         run: |
           echo "Frontend changed: ${{ needs.determine-changes.outputs.frontend-changed }}"
           echo "Backend changed: ${{ needs.determine-changes.outputs.backend-changed }}"
-          echo "Frontend build: ${{ needs.build-test-frontend.result }}"
-          echo "Backend build: ${{ needs.build-test-backend.result }}"
+          echo "Frontend build: ${{ needs.build-artifact-frontend.result }}"
+          echo "Backend build: ${{ needs.build-docker-backend.result }}"
           
-          if [ "${{ needs.build-test-frontend.result }}" == "failure" ] || [ "${{ needs.build-test-backend.result }}" == "failure" ]; then
+          if [ "${{ needs.build-artifact-frontend.result }}" == "failure" ] || [ "${{ needs.build-docker-backend.result }}" == "failure" ]; then
             echo "Build failed!"
             exit 1
           fi
