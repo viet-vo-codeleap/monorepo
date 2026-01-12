@@ -106,3 +106,4 @@ plan.out
 .terraformrc
 terraform.rc
 plan
+*.secure
