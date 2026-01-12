@@ -84,6 +84,6 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - run: |
           az containerapp update \
-          --name ${{ env.CONTAINER_APP_NAME}} \ 
-          --resource-group ${{ env.RESOURCE_GROUP }} \
-          --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.DOTNET_IMAGE }}:${{ needs.build-docker-backend.outputs.image_tag }}
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.DOTNET_IMAGE }}:${{ needs.build-docker-backend.outputs.image_tag }}
